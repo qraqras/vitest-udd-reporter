@@ -1,0 +1,45 @@
+{
+	"name": "vitest-udd-reporter",
+	"version": "0.0.0",
+	"description": "A Vitest reporter for UDD",
+	"type": "module",
+	"scripts": {
+		"test": "vitest",
+		"format": "biome format --write",
+		"lint": "biome lint --write",
+		"check": "biome check --write",
+		"build": "tsc"
+	},
+	"devDependencies": {
+		"vite": "^7.1.2",
+		"vitest": "^3.2.4",
+		"typescript": "~5.8.3",
+		"@biomejs/biome": "2.2.2"
+	},
+	"prepare": "npm run build",
+	"files": [
+		"README.md",
+		"LICENSE",
+		"dist"
+	],
+	"exports": {
+		".": {
+			"import": "./dist/index.js",
+			"require": "./dist/index.js"
+		}
+	},
+	"types": "dist/index.d.ts",
+	"license": "MIT",
+	"author": {
+		"name": "Ryuma Asai",
+		"email": "q100rrraaa@gmail.com"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/qraqras/vitest-udd-reporter.git"
+	},
+	"keywords": [
+		"vitest",
+		"reporter"
+	]
+}
