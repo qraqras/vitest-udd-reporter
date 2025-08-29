@@ -1,0 +1,14 @@
+{
+	"image": "node:latest",
+	"customizations": {
+		"vscode": {
+			"extensions": ["biomejs.biome"],
+			"settings": {
+				"editor.codeActionsOnSave": {
+					"source.fixAll.biome": "explicit",
+					"source.organizeImports.biome": "explicit"
+				}
+			}
+		}
+	}
+}

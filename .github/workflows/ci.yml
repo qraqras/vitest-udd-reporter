@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+
+permissions:
+  contents: write
+  checks: write
+
+jobs:
+  test:
+    name: Node.js CI
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Create format check run
+        id: create_check
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const check = await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'format-check',
+              head_sha: context.sha,
+              status: 'in_progress'
+            });
+            core.setOutput('check_id', check.data.id);
+
+      - name: Run formatter
+        run: npm run check --if-present
+
+      - name: Detect formatting changes
+        id: detect_changes
+        run: |
+          # set GITHUB_OUTPUT 'changed' to true/false for downstream steps
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Update format check run
+        if: always()
+        uses: actions/github-script@v6
+        env:
+          CHECK_ID: ${{ steps.create_check.outputs.check_id }}
+          CHANGED: ${{ steps.detect_changes.outputs.changed }}
+        with:
+          script: |
+            const checkId = parseInt(process.env.CHECK_ID, 10);
+            const changed = process.env.CHANGED === 'true';
+            const conclusion = changed ? 'failure' : 'success';
+            await github.rest.checks.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              check_run_id: checkId,
+              status: 'completed',
+              conclusion,
+            });
+
+      - name: Build
+        run: npm run build --if-present
+
+      - name: Run tests
+        run: npm test --silent
